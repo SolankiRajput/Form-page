@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Project Management Form </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet"
+              href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script
+        src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h3>Project Management Form</h3>
+            <form id="ProjForm" method="post">
+                <div class="form-group">
+                    <span><label for="projId">Project-ID:</label> <label id="projIdMsg">
+                        </label></span>
+                    <input type="number" class="form-control" name="projId" id="projId"
+                           placeholder="Enter Project ID" onchange="getProject()" required >
+                </div>
+                <div class="form-group">
+                    <label for="projName">Project-Name:</label>
+                    <input type="text" class="form-control" id="projName"
+                           placeholder="Enter Project Name" name="projName">
+                </div>
+                <div class="form-group">
+                    <label for="projAssi">Assigned-To:</label>
+                    <input type="text" class="form-control" id="projAssi"
+                           placeholder="Enter Project Assisgned" name="projAssi">
+                </div>
+                <div class="form-group">
+                    <label for="projDate">Assignment-Date:</label>
+                    <input type="date" class="form-control" id="projDate"
+                           placeholder="Enter Assignment Date" name="projDate">
+                </div>
+                <div class="form-group">
+                    <label for="deadline">Deadline:</label>
+                    <input type="date" class="form-control" id="deadline"
+                           placeholder="Enter Deadline" name="deadline">
+                </div>
+                <input type="button" class="btn btn-primary" id="save" value="save"
+                       onclick="Save();">
+                <input type="button" class="btn btn-primary" id="change" value="change"
+                       onclick="Change();">
+                <input type="button" class="btn btn-primary" id="reset" value="reset"
+                       onclick="resetForm();">
+            </form>
+        </div>
+        <script>
+            $("#projId").focus();
+            function validateAndGetFormData() {
+                var projIdVar = $("#projId").val();
+                if (projIdVar === "") {
+                    alert("Project ID Required Value");
+                    $("#projId").focus();
+                    return "";
+                }
+                var projNameVar = $("#projName").val();
+                if (projNameVar === "") {
+                    alert("Project Name is Required Value");
+                    $("#projName").focus();
+                    return "";
+                }
+                var projAssiVar = $("#projAssi").val();
+                if (projAssiVar === "") {
+                    alert("Project Assigned is Required Value");
+                    $("#projAssi").focus();
+                    return "";
+                }
+                var projAssignmentVar = $("#projDate").val();
+                if (projAssignmentVar === "") {
+                    alert("Project Assignment Date is Required Value");
+                    $("#projDate").focus();
+                    return "";
+                }
+                var projdeadline = $("#deadline").val();
+                if (projdeadline === "") {
+                    alert("Deadline is Required Value");
+                    $("#deadline").focus();
+                    return "";
+                }
+                var jsonStrObj = {
+                    projId: projIdVar,
+                    projName: projNameVar,
+                    projAssi: projAssiVar,
+                    projDate: projAssignmentVar,
+                    deadline: projdeadline
+                };
+                return JSON.stringify(jsonStrObj);
+            }
+            // This method is used to create PUT Json request.
+            function createPUTRequest(connToken, jsonObj, dbName, relName) {
+                var putRequest = "{\n"
+                        + "\"token\" : \""
+                        + connToken
+                        + "\","
+                        + "\"dbName\": \""
+                        + dbName
+                        + "\",\n" + "\"cmd\" : \"PUT\",\n"
+                        + "\"rel\" : \""
+                        + relName + "\","
+                        + "\"jsonStr\": \n"
+                        + jsonObj
+                        + "\n"
+                        + "}";
+                return putRequest;
+            }
+            function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
+                var url = dbBaseUrl + apiEndPointUrl;
+                var jsonObj;
+                $.post(url, reqString, function (result) {
+                    jsonObj = JSON.parse(result);
+                }).fail(function (result) {
+                    var dataJsonObj = result.responseText;
+                    jsonObj = JSON.parse(dataJsonObj);
+                });
+                return jsonObj;
+            }
+
+
+            function saveRecNo2LS(jsonObj) {
+                var lvData = JSON.parse(jsonObj.data);
+                localStorage.setItem('recno', lvData.rec_no);
+            }
+
+            function getProjectIdAsJsonObj() {
+                var projId = $('#projId').val();
+                var jsonStr = {
+                    id: projId
+                };
+                return JSON.stringify(jsonStr);
+            }
+
+
+
+            function fillData(jsonObj) {
+                saveRecNo2LS(jsonObj);
+                var record = JSON.parse(jsonObj.data).record;
+                $('#projId').val(record.id);
+                $('#projName').val(record.name);
+                $('#projAssi').val(record.assi);
+                $('#projDate').val(record.date);
+                $('#deadline').val(record.deadline);
+
+            }
+            function resetForm() {
+                $("#projId").val("");
+                $("#projName").val("");
+                $("#projAssi").val("");
+                $("#projDate").val("");
+                $("#deadline").val("");
+                $("#projId").focus();
+            }
+            
+            function getProject(){
+    var projIdJsonObj = getprojectIdAsJsonObj();
+    var getRequest = createGET_BY_KEYRequest("90932146|-31949221052354096|90963821", "COLLEGE-DB", "PROJECT-TABLE", projIdJsonObj);
+    jQuery.ajaxSetup({async: false});
+    var resJsonObj = executeCommandAtGivenBaseUrl(getRequest,"90932146|-31949221052354096|90963821" ,  "/api/irl");
+    jQuery.ajaxSetup({async: true});
+        if(resJsonObj.status === 400){
+            $("#save").prop('disabled', false);
+            $("#reset").prop('disabled', false);
+            $("#projId").focus();
+        }
+        else if (resJsonObj.status === 200){
+            $("#projId").prop('disabled', true);
+            fillData(resJsonObj);
+            
+           $("#change").prop('disabled', false);
+            $("#reset").prop('disabled', false);
+            $("#projId").focus(); 
+            
+        }
+}
+
+            function Save() {
+                var jsonStr = validateAndGetFormData();
+                if (jsonStr === "") {
+                    return;
+                }
+                var putReqStr = createPUTRequest("90932146|-31949221052354096|90963821",
+                        jsonStr, "COLLEGE-DB", "PROJECT-TABLE");
+                alert(putReqStr);
+                jQuery.ajaxSetup({async: false});
+                var resultObj = executeCommand(putReqStr,
+                        "http://api.login2explore.com:5577", "/api/iml");
+                alert(JSON.stringify(resultObj));
+                jQuery.ajaxSetup({async: true});
+                resetForm();
+                $('#projId').focus();
+            }
+
+            function Change() {
+                $('#change').prop('disabled', true);
+                jsonChg = validateAndGetFormData();
+                var updateRequest = createUPDATERecordRequest("90932146|-31949221052354096|90963821", jsonChg, "COLLEGE-DB", "PROJECT-TABLE", localStorage.getItem("recno"));
+                alert(updateRequest);
+                jQuery.ajaxSetup({async: false});
+                var resJsonObj = executeCommandl(updateRequest, "http://api.login2explore.com:5577", "/api/iml");
+                alert(JSON.stringify(resultObj));
+                jQuery.ajaxSetup({async: true});
+                console.log(resJsonObj);
+                resetForm();
+                $('#projId').focus();
+            }
+
+        </script>
+    </body>
+</html>
+
