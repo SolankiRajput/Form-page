@@ -1,5 +1,4 @@
 
-
 var jpdbBaseURL = "http://api.login2explore.com:5577";
 var jpdbIRL = "/api/irl";
 var jpdbIML = "/api/iml";
@@ -139,6 +138,7 @@ function saveData(){
      var resJsonObj = executeCommandAtGivenBaseUrl(putRequest, jpdbBaseURL, jpdbIML);
      jQuery.ajaxSetup({async: true});
      resetForm();
+     alert('Data saved sucessfully');
      $('#stuRollno').focus();
 }
 
@@ -152,6 +152,7 @@ function changeData(){
      jQuery.ajaxSetup({async: true});
      console.log(resJsonObj);
      resetForm();
+    alert('Data Change sucessfully');
      $('#stuRollno').focus();
 }
      
